@@ -529,7 +529,17 @@ def extinction( mag_key, ebv ):
 
     elif mag_key == 'W3_mag':
         A = e_gprp * 0.095
+
+    elif mag_key == 'U_mag':
+        A = e_gprp * 3.7665
+
+    elif mag_key == 'B_mag':
+        A = e_gprp * 3.151
         
+    elif mag_key == 'V_mag':
+        A = e_gprp * 2.394
+        
+            
     else:
         print('NO EXTINCTION COEFFICIENT FOR '+mag_key+'. ASSUMING NO EXTINCTION.')
         return 0.
