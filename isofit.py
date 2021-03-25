@@ -6,15 +6,14 @@ from os import path
 from itertools import product
 
 #You shouldn't need these lines unless you make your own model grid. But who knows
-from isochrones.mist import MIST_EvolutionTrack, MISTEvolutionTrackGrid
-from isochrones.mist.bc import MISTBolometricCorrectionGrid
+#from isochrones.mist import MIST_EvolutionTrack, MISTEvolutionTrackGrid
+#from isochrones.mist.bc import MISTBolometricCorrectionGrid
 
 
 from scipy.optimize import minimize 
 
 from .interp import DFInterpolator
 import emcee
-
 
 
 class SingleStar(object):
@@ -279,7 +278,7 @@ class SingleStar(object):
         if self._in_obs('feh'):
             return ln_distance_prior(1000./parallax)
         else:
-            return ln_distance_prior(1000./parallax) + ln_gauss_prior(feh, 0., 0.2)
+            return ln_distance_prior(1000./parallax) + ln_gauss_prior(feh, 0., 0.25)
         
 
     def mcmc_likelihood(self, model_param):
@@ -384,7 +383,7 @@ class SingleStar(object):
         
         for k in phys_post.columns:
 
-            med, lo, hi = np.percentile(post[k], [50,16,84] )
+            med, lo, hi = np.nanpercentile(post[k], [50,16,84] )
 
             params[k] =[med]
             params[k+'_e'] = [lo-med]
@@ -411,7 +410,7 @@ class MIST_Track_Models(object):
             print('..Creating Model Grid...')
             masses = np.arange(0.1, 8, 0.02)
             eep = np.arange(202, 1710, 1) #All phases from ZAMS to WD Track
-            feh = np.arange(-2, 0.6, 0.1)
+            feh = np.arange(-2, 0.8, 0.05)
             self.models = get_multiindex_model_grid(masses, eep, feh, mags=mags,make_new=make_new)
         else:
             self.models = modelgrid
@@ -470,14 +469,12 @@ class MIST_Track_Models(object):
         return df
 
 
-
-
 def gauss_prior(a, mu, sig):
     return np.exp(-0.5*(a-mu)**2/sig**2)
 
 
 def distance_prior(d, lscale=1350.):
-    return ((d**2/(2.0*lscale**3.)) *np.exp(d/lscale))
+    return (d**2/(2.0*lscale**3.))*np.exp(d/lscale)
 
 
 def ln_gauss_prior(x, mu, sig):
@@ -485,7 +482,6 @@ def ln_gauss_prior(x, mu, sig):
 
 def ln_distance_prior(d, lscale=1350.):
     return np.log(distance_prior(d, lscale))
-
 
 
 def extinction( mag_key, ebv ):
