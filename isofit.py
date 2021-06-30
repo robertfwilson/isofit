@@ -63,12 +63,12 @@ class SingleStar(object):
 
         
 
-    def _update_obs(self, obs):
+    def _update_obs(self, obs, sig=5.):
         self.obs = obs
         self.obs_keys= list( self.obs.keys() )
         self.mag_keys = [k for k in self.obs_keys if k[-3:]=='mag']
         self.all_models = self._make_course_grid()
-        self.good_models = self._cut_badfit_models()
+        self.good_models = self._cut_badfit_models(sig=5.)
         
 
 
@@ -181,15 +181,17 @@ class SingleStar(object):
         return model_plax
 
         
-    def mod_prior(self):
+    def mod_prior(self,age_prior=10.31):
 
         parallax = self.get_implied_model_parallax()
         
         if self._in_obs('feh'):
-            return ln_distance_prior(1000./parallax)
+            prior = ln_distance_prior(1000./parallax)
         else:
             feh = self.good_models['feh']
-            return ln_distance_prior(1000./parallax) + ln_gauss_prior(feh, 0., 0.2)
+            prior = ln_distance_prior(1000./parallax) + ln_gauss_prior(feh, 0., 0.2)        
+
+        return prior
 
         
     def mod_likelihood(self):
@@ -281,12 +283,16 @@ class SingleStar(object):
             return ln_distance_prior(1000./parallax) + ln_gauss_prior(feh, 0., 0.25)
         
 
-    def mcmc_likelihood(self, model_param):
+    def mcmc_likelihood(self, model_param, age_lim=10.31):
         
         mass, eep, feh, parallax, ebv = model_param
         model = self._evaluate_model(model_param)
         ln_lh = 0.
 
+        if model['age']>age_lim:
+            return -np.inf
+
+        
         for k in self.obs_keys:
 
             if k == 'ebv':
