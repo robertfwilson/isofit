@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "isofit"
+version = "0.1.0"
+description = "Tools for interpolating stellar model grids and fitting observations"
+readme = "README.md"
+license = { file = "LICENSE" }
+dependencies = [
+    "emcee",
+    "numba",
+    "numpy",
+    "pandas",
+    "scipy",
+    "tables",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
